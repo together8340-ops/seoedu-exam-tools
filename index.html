@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>내신 파일 표지 만들기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#151a2e; --soft:#5c6480; --paper:#f4f2ec; --card:#fffefb;
+  --rule:#ded9cc; --navy:#1b2a6b; --navy-deep:#141f4f;
+  --field:#ffffff; --field-rule:#cdc7b8; --alert:#9e2b20;
+  --shadow:rgba(21,26,46,.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#eceade; --soft:#a6a8ba; --paper:#14151a; --card:#1d1f26; --rule:#33353e;
+    --navy:#8e9bf0; --navy-deep:#20264a; --field:#22242b; --field-rule:#41434d;
+    --alert:#e07f70; --shadow:rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#eceade; --soft:#a6a8ba; --paper:#14151a; --card:#1d1f26; --rule:#33353e;
+  --navy:#8e9bf0; --navy-deep:#20264a; --field:#22242b; --field-rule:#41434d;
+  --alert:#e07f70; --shadow:rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Noto Sans KR","맑은 고딕",system-ui,sans-serif; font-size:15px; line-height:1.55}
+.wrap{max-width:1500px; margin:0 auto; padding:28px 20px 80px}
+
+header.top{display:flex; flex-wrap:wrap; gap:16px 26px; align-items:flex-end; justify-content:space-between; margin-bottom:22px}
+h1{font-size:26px; font-weight:700; margin:0; letter-spacing:-.01em}
+.sub{color:var(--soft); font-size:13.5px; margin-top:5px; max-width:62ch}
+.verbox{display:flex; flex-direction:column; gap:3px; align-items:flex-start}
+button.reload{background:transparent; border:1px solid var(--field-rule); border-radius:5px; padding:7px 12px; cursor:pointer; font-weight:600; white-space:nowrap; color:inherit; font-family:inherit}
+button.reload:hover{border-color:var(--navy); color:var(--navy)}
+.ver{font-size:11.5px; color:var(--soft)}
+
+label.tiny{font-size:12.5px; color:var(--soft); display:block; margin-bottom:5px}
+input,select,textarea,button{font:inherit; color:inherit}
+input,select,textarea{background:var(--field); border:1px solid var(--field-rule); border-radius:5px; padding:7px 9px; width:100%}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--navy); outline-offset:1px}
+textarea{resize:vertical; min-height:120px; line-height:1.7}
+
+.tabbar{display:flex; flex-wrap:wrap; gap:4px; align-items:flex-end; border-bottom:2px solid var(--navy)}
+.tab{display:flex; align-items:center; gap:9px; background:transparent; border:1px solid transparent; border-bottom:none;
+  border-radius:7px 7px 0 0; padding:10px 16px; cursor:pointer; color:var(--soft); font-weight:600; font-size:14.5px; position:relative; top:2px}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{background:var(--card); border-color:var(--navy); border-bottom:2px solid var(--card); color:var(--navy)}
+.tab .x{border:none; background:transparent; color:var(--soft); cursor:pointer; padding:0 1px; font-size:15px; line-height:1}
+.tab .x:hover{color:var(--alert)}
+.tab .x.armed{color:var(--alert); font-size:11.5px; font-weight:700; border:1px solid var(--alert); border-radius:4px; padding:1px 5px}
+.tab.add{color:var(--navy)}
+
+.panel{background:var(--card); border:1px solid var(--rule); border-top:none; padding:22px; box-shadow:0 1px 4px var(--shadow)}
+.cols{display:grid; grid-template-columns:minmax(0,380px) minmax(0,1fr); gap:30px; align-items:start}
+@media (max-width:1000px){ .cols{grid-template-columns:1fr} }
+h2{font-size:15px; margin:0 0 12px; font-weight:700}
+h2 .note{font-weight:400; color:var(--soft); font-size:12.5px; margin-left:7px}
+.block{margin-bottom:24px}
+.grid1{display:grid; gap:11px}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+
+.chips{display:flex; flex-wrap:wrap; gap:6px}
+.chips button{border:2px solid transparent; border-radius:6px; padding:5px 11px; cursor:pointer; font-weight:700; font-size:13px; color:#1a1a1a}
+.chips button[aria-pressed="true"]{border-color:var(--ink)}
+.chips .pick{position:relative; overflow:hidden; display:inline-flex; align-items:center; justify-content:center; width:34px; padding:5px 0;
+  background-image:conic-gradient(#e05c5c,#e0b45c,#7bc46b,#5cc0c0,#5c7fe0,#a65ce0,#e05c9c,#e05c5c)}
+.chips .pick input{position:absolute; inset:-8px; width:220%; height:220%; opacity:0; cursor:pointer; padding:0; border:none}
+
+.kinds label{display:flex; align-items:center; gap:9px; padding:6px 2px; font-size:13.5px; cursor:pointer}
+.kinds input{width:auto}
+.kinds .cnt{margin-left:auto; color:var(--soft); font-size:12px}
+
+.actions{display:flex; flex-wrap:wrap; gap:10px; margin:16px 0 6px; align-items:center}
+button.go{background:var(--navy); color:#fff; border:none; border-radius:5px; padding:11px 20px; font-weight:600; cursor:pointer}
+button.go:hover{background:var(--navy-deep)}
+button.ghost{background:transparent; border:1px solid var(--field-rule); border-radius:5px; padding:11px 16px; cursor:pointer; font-weight:500}
+button.ghost:hover{border-color:var(--navy); color:var(--navy)}
+.saved{font-size:12.5px; color:var(--soft)}
+.msg{font-size:13px; color:var(--soft); min-height:20px; margin:4px 2px}
+.msg.err{color:var(--alert)}
+
+/* ===== 미리보기 ===== */
+.sheetwrap{display:flex; flex-wrap:wrap; gap:20px; align-items:flex-start}
+.slot{display:flex; flex-direction:column; gap:6px}
+.slot .cap{font-size:11.5px; color:var(--soft); font-weight:600}
+.frame{width:318px; height:449px; overflow:hidden; border:1px solid var(--rule); box-shadow:0 2px 10px var(--shadow); background:#fff}
+.cover{width:794px; height:1123px; background:var(--bg,#fff); transform:scale(.4); transform-origin:top left;
+  display:flex; flex-direction:column; align-items:center; padding:112px 68px 62px;
+  font-family:"Noto Sans KR","\B9D1\C740 \ACE0\B515",sans-serif; color:#111}
+.cover .tag{display:inline-block; background:var(--chip,#fff263); color:#111; font-size:23px; font-weight:800;
+  padding:4px 13px; letter-spacing:-.01em; white-space:nowrap}
+.cover .title{font-size:50px; font-weight:900; line-height:1.28; text-align:center; letter-spacing:-.03em; margin-top:18px; word-break:keep-all}
+.cover .title.name{font-size:88px; letter-spacing:.14em; margin-top:24px}
+.cover .gapA{flex:1.4}
+.cover .gapB{flex:.6}
+.cover .notes{text-align:center}
+.cover .lead{font-size:18px; font-weight:800; color:#cc2a73; letter-spacing:-.01em; margin-bottom:32px; line-height:1.6}
+.cover .np{font-size:17px; font-weight:700; color:#2b2b2b; line-height:1.8; margin-bottom:24px}
+.cover .np:last-child{margin-bottom:0}
+.cover .foot{display:flex; align-items:center; gap:10px; font-size:18px; font-weight:700; color:#2b2b2b}
+.cover svg.mark{width:19px; height:27px; display:block; flex:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div>
+    <h1>내신 파일 표지 만들기</h1>
+    <p class="sub">요일별 색 칩은 자동으로 붙고, 학생 명단을 붙여넣으면 학생별 표지가 인원수만큼 만들어집니다.</p>
+  </div>
+  <div class="verbox">
+    <button class="reload" id="reload" type="button">⟳ 새로고침</button>
+    <span class="ver" id="ver"></span>
+  </div>
+</header>
+
+<div class="tabbar" id="tabs" role="tablist"></div>
+
+<div class="panel">
+  <div class="cols">
+    <div>
+      <div class="block">
+        <h2>반 정보</h2>
+        <div class="grid1">
+          <div class="grid2">
+            <div><label class="tiny" for="teacher">담당T</label><input id="teacher" placeholder="예: 서윤희T"></div>
+            <div><label class="tiny" for="dayset">요일</label><input id="dayset" placeholder="예: 월금"></div>
+          </div>
+          <div><label class="tiny" for="cls">반 이름</label><input id="cls" placeholder="예: 백신고1"></div>
+          <div>
+            <label class="tiny">색 칩 <span style="opacity:.75">(수요일이 들어가는 반은 모두 연두)</span></label>
+            <div class="chips" id="chips"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>만들 표지</h2>
+        <div class="kinds" id="kinds"></div>
+      </div>
+
+      <div class="block">
+        <h2>학생 명단<span class="note">한 줄에 한 명</span></h2>
+        <textarea id="roster" placeholder="이름1&#10;이름2&#10;이름3"></textarea>
+      </div>
+    </div>
+
+    <div>
+      <h2>미리보기<span class="note">A4 세로 · L자 파일 첫 장</span></h2>
+      <div class="sheetwrap" id="preview"></div>
+      <div class="actions">
+        <button class="go" id="pdf" type="button">PDF로 저장</button>
+        <button class="ghost" id="pdfAll" type="button">전체 반 한 번에</button>
+        <button class="ghost" id="exp" type="button">설정 내보내기</button>
+        <button class="ghost" id="imp" type="button">설정 불러오기</button>
+        <input type="file" id="impFile" accept=".json,.csv,.txt,application/json,text/plain" style="display:none">
+        <span class="saved" id="autosave"></span>
+      </div>
+      <p class="msg" id="msg"></p>
+    </div>
+  </div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const STORE = "cover-maker-v1";
+const APP_UPDATED = "2026-11-09";
+
+const DAYCHIPS = [
+  {day:"월금", color:"#fff263", hint:"월금"},
+  {day:"화목", color:"#9fe8e0", hint:"화목"},
+  {day:"수",   color:"#c8f06a", hint:"수요일 포함 반 전체"},
+  {day:"기타", color:"#ffc9de", hint:"그 밖의 반"}
+];
+
+const KINDS = [
+  {key:"today", ui:"당일 클리닉 자료", title:"당일 클리닉 자료", lead:"", notes:[]},
+  {key:"retest", ui:"지난 시간 클리닉 자료", title:"지난 시간\n클리닉 자료",
+   lead:"클리닉 종료 후 남은 시험지들은 이 파일에 모아주세요!",
+   notes:["재시 보러 온 학생들은\n이 파일에서 재시험지 확인 후\n꺼내서 시험 보시면 됩니다.",
+          "여기에 시험지가 없을 경우\n시험지 인쇄 요청하시면 됩니다!"]},
+  {key:"answer", ui:"내신대비 워크북 채점용 답지", title:"내신대비 워크북\n채점용 답지",
+   lead:"", notes:["채점 후 제자리에 모아주세요!"]},
+  {key:"student", ui:"학생별 파일", title:"", lead:"", notes:[]}
+];
+
+function newClass(o){
+  return Object.assign({
+    name:"새 반", teacher:"", dayset:"월금", cls:"", chip:"#fff263",
+    on:{today:true, retest:true, answer:true, student:true}, roster:""
+  }, o||{});
+}
+
+function defaultData(){
+  return {active:0, classes:[
+    newClass({name:"월금 백신고1", teacher:"ㅇㅇT", dayset:"월금", cls:"백신고1", chip:"#fff263",
+      roster:"이름1\n이름2\n이름3"}),
+    newClass({name:"수금 풍동고1", teacher:"ㅇㅇT", dayset:"수금", cls:"풍동고1", chip:"#c8f06a",
+      roster:"이름1\n이름2"})
+  ]};
+}
+
+let data = defaultData();
+try{
+  const raw = localStorage.getItem(STORE);
+  if(raw){ const p = JSON.parse(raw); if(p && p.classes && p.classes.length) data = p; }
+}catch(e){}
+
+const $ = id => document.getElementById(id);
+const cur = () => data.classes[data.active];
+const esc = s => String(s==null?"":s).replace(/[&<>]/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
+const roster = c => String(c.roster||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+
+const MARK = `<svg class="mark" width="19" height="27" viewBox="0 0 399 562" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">`
+  + `<polygon points="0,0 145,223 0,562" fill="#E81E74"/>`
+  + `<polygon points="0,0 399,211 145,223" fill="#F7A60C"/>`
+  + `<polygon points="145,223 399,211 0,562" fill="#662583"/></svg>`;
+
+/* ---------- 표지 한 장 ---------- */
+const nl = s => esc(s).replace(/\n/g, "<br>");
+
+// 색 칩을 흰색과 섞어 옅은 배경색을 만든다
+function tint(hex, w){
+  const h = String(hex || "#ffffff").replace("#","");
+  const v = h.length === 3 ? h.split("").map(x=>x+x).join("") : h;
+  const n = [0,2,4].map(i => parseInt(v.slice(i,i+2),16));
+  if(n.some(isNaN)) return "#ffffff";
+  return "#" + n.map(x => Math.round(x + (255-x)*w).toString(16).padStart(2,"0")).join("");
+}
+
+function coverHTML(c, kind, studentName){
+  const k = KINDS.find(x => x.key === kind);
+  const isStudent = kind === "student";
+  const tag = [c.teacher, c.dayset, c.cls].filter(Boolean).join(" ") || "담당T 요일 반이름";
+  const title = isStudent ? (studentName || "이름") : k.title;
+  const notes = isStudent ? [] : k.notes;
+  const lead = isStudent ? "" : k.lead;
+  const bg = isStudent ? "#ffffff" : tint(c.chip, .82);
+  return `<div class="cover" style="--chip:${c.chip}; --bg:${bg}">
+      <div class="tag">${esc(tag)}</div>
+      <div class="title${isStudent ? " name" : ""}">${nl(title)}</div>
+      <div class="gapA"></div>
+      ${(lead || notes.length) ? `<div class="notes">
+        ${lead ? `<div class="lead">${nl(lead)}</div>` : ""}
+        ${notes.map(n => `<div class="np">${nl(n)}</div>`).join("")}
+      </div>` : ""}
+      <div class="gapB"></div>
+      <div class="foot">${MARK}<span>서윤희 입시영어학원</span></div>
+    </div>`;
+}
+
+function sheetList(c){
+  const out = [];
+  KINDS.forEach(k => {
+    if(!c.on[k.key]) return;
+    if(k.key === "student"){
+      const names = roster(c);
+      if(!names.length) out.push({kind:"student", name:"", cap:"학생별 (명단 없음)"});
+      else names.forEach(n => out.push({kind:"student", name:n, cap:`학생별 · ${n}`}));
+    }else{
+      out.push({kind:k.key, name:"", cap:k.ui});
+    }
+  });
+  return out;
+}
+
+/* ---------- 미리보기 ---------- */
+function render(){
+  const c = cur();
+  const list = sheetList(c);
+  $("preview").innerHTML = list.length
+    ? list.map(s => `<div class="slot"><span class="cap">${esc(s.cap)}</span>
+        <div class="frame">${coverHTML(c, s.kind, s.name)}</div></div>`).join("")
+    : `<p class="msg">만들 표지를 하나 이상 골라주세요.</p>`;
+  autosave();
+}
+
+/* ---------- 탭 ---------- */
+function renderTabs(){
+  const bar = $("tabs"); bar.innerHTML = "";
+  data.classes.forEach((c, i) => {
+    const b = document.createElement("button");
+    b.className = "tab"; b.type = "button"; b.setAttribute("role","tab");
+    b.setAttribute("aria-selected", i===data.active ? "true":"false");
+    b.innerHTML = `<span>${esc(c.name)}</span>`;
+    b.onclick = () => { data.active = i; renderAll(); };
+    if(data.classes.length > 1){
+      const x = document.createElement("button");
+      x.className = "x"; x.type = "button"; x.title = "이 반 지우기"; x.textContent = "×";
+      x.onclick = ev => {
+        ev.stopPropagation();
+        if(x.dataset.armed !== "1"){
+          x.dataset.armed = "1"; x.textContent = "지울까요?"; x.classList.add("armed");
+          say(`한 번 더 누르면 '${c.name}' 탭이 지워집니다.`);
+          clearTimeout(x._t);
+          x._t = setTimeout(() => { x.dataset.armed=""; x.textContent="×"; x.classList.remove("armed"); say(""); }, 4000);
+          return;
+        }
+        clearTimeout(x._t);
+        data.classes.splice(i,1);
+        if(data.active >= data.classes.length) data.active = data.classes.length-1;
+        renderAll(); say(`'${c.name}' 탭을 지웠습니다.`);
+      };
+      b.appendChild(x);
+    }
+    bar.appendChild(b);
+  });
+  const add = document.createElement("button");
+  add.className = "tab add"; add.type = "button"; add.textContent = "＋ 반 추가";
+  add.onclick = () => {
+    const base = JSON.parse(JSON.stringify(cur()));
+    base.name = "새 반"; base.cls = ""; base.roster = "";
+    data.classes.push(base); data.active = data.classes.length-1; renderAll();
+  };
+  bar.appendChild(add);
+}
+
+/* ---------- 색 칩 ---------- */
+function renderChips(){
+  const c = cur(), box = $("chips"); box.innerHTML = "";
+  DAYCHIPS.forEach(d => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = d.day; b.style.background = d.color;
+    b.title = d.hint;
+    b.setAttribute("aria-pressed", c.chip.toLowerCase() === d.color ? "true" : "false");
+    b.onclick = () => {        // 색만 바꾼다 — 요일 글자는 직접 적은 그대로
+      c.chip = d.color;
+      renderChips(); render();
+    };
+    box.appendChild(b);
+  });
+  const wrap = document.createElement("label");
+  wrap.className = "pick"; wrap.title = "색 직접 고르기";
+  wrap.style.background = DAYCHIPS.some(d => d.color === c.chip.toLowerCase()) ? "" : c.chip;
+  const inp = document.createElement("input");
+  inp.type = "color"; inp.value = c.chip;
+  inp.oninput = e => {
+    c.chip = e.target.value;
+    wrap.style.background = c.chip;
+    box.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed","false"));
+    render();
+  };
+  wrap.appendChild(inp);
+  box.appendChild(wrap);
+}
+
+/* ---------- 종류 ---------- */
+function renderKinds(){
+  const c = cur(), box = $("kinds"); box.innerHTML = "";
+  KINDS.forEach(k => {
+    const lab = document.createElement("label");
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.checked = !!c.on[k.key];
+    cb.onchange = () => { c.on[k.key] = cb.checked; renderKinds(); render(); };
+    lab.appendChild(cb);
+    lab.appendChild(document.createTextNode(k.ui));
+    const n = document.createElement("span");
+    n.className = "cnt";
+    n.textContent = k.key === "student" ? `${roster(c).length}장` : "1장";
+    lab.appendChild(n);
+    box.appendChild(lab);
+  });
+}
+
+function renderForm(){
+  const c = cur();
+  $("teacher").value = c.teacher || "";
+  $("dayset").value = c.dayset || "";
+  $("cls").value = c.cls || "";
+  $("roster").value = c.roster || "";
+  renderChips(); renderKinds();
+}
+function renderAll(){ renderTabs(); renderForm(); render(); }
+
+const syncName = () => {
+  const c = cur();
+  c.name = [c.dayset, c.cls].filter(Boolean).join(" ") || "새 반";
+  renderTabs();
+};
+$("teacher").addEventListener("input", e => { cur().teacher = e.target.value; render(); });
+$("dayset").addEventListener("input", e => { cur().dayset = e.target.value; syncName(); render(); });
+$("cls").addEventListener("input", e => { cur().cls = e.target.value; syncName(); render(); });
+$("roster").addEventListener("input", e => { cur().roster = e.target.value; renderKinds(); render(); });
+
+/* ---------- 저장 ---------- */
+let saveTimer = null;
+function doSave(){
+  try{
+    localStorage.setItem(STORE, JSON.stringify(data));
+    const d = new Date();
+    $("autosave").textContent = `자동 저장됨 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+  }catch(e){ $("autosave").textContent = "자동 저장 안 됨"; }
+}
+function autosave(){ clearTimeout(saveTimer); saveTimer = setTimeout(doSave, 400); }
+window.addEventListener("beforeunload", () => { clearTimeout(saveTimer); doSave(); });
+document.addEventListener("visibilitychange", () => { if(document.hidden){ clearTimeout(saveTimer); doSave(); } });
+
+function say(t, err){ const m = $("msg"); m.textContent = t; m.className = "msg" + (err?" err":""); }
+
+async function saveFile(name, blob, okMsg){
+  const dl = await (window.claude && window.claude.use ? window.claude.use("downloads") : null);
+  if(dl){
+    try{ await dl.save({filename:name, data:blob}); say(okMsg); return; }
+    catch(err){
+      const code = err && err.code;
+      if(code === "declined"){ say("저장을 취소했습니다."); return; }
+      if(code === "rate_limited"){ say("잠시 후 다시 눌러 주세요."); return; }
+      say("여기서는 파일 저장이 안 됩니다.", true); return;
+    }
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  say(okMsg);
+}
+
+/* ---------- PDF ---------- */
+async function shotCover(c, kind, name){
+  const holder = document.createElement("div");
+  holder.style.cssText = "position:absolute; left:-10000px; top:0; width:794px;";
+  holder.innerHTML = coverHTML(c, kind, name);
+  const el = holder.firstElementChild;
+  el.style.transform = "none";
+  document.body.appendChild(holder);
+  try{
+    return await html2canvas(el, {scale:3, backgroundColor:"#ffffff", useCORS:true, width:794, height:1123, windowWidth:900});
+  } finally { holder.remove(); }
+}
+
+async function makePDF(classes, filename){
+  if(typeof html2canvas === "undefined" || !window.jspdf){ say("PDF 모듈을 불러오지 못했습니다.", true); return; }
+  const jobs = [];
+  classes.forEach(c => sheetList(c).forEach(s => jobs.push({c, s})));
+  if(!jobs.length){ say("만들 표지가 없습니다.", true); return; }
+
+  say(`표지 ${jobs.length}장을 만드는 중입니다…`);
+  try{
+    const {jsPDF} = window.jspdf;
+    const doc = new jsPDF({unit:"pt", format:"a4", orientation:"portrait"});
+    const pw = doc.internal.pageSize.getWidth(), ph = doc.internal.pageSize.getHeight();
+    for(let i = 0; i < jobs.length; i++){
+      const {c, s} = jobs[i];
+      const canvas = await shotCover(c, s.kind, s.name);
+      if(i) doc.addPage("a4", "portrait");
+      doc.addImage(canvas.toDataURL("image/jpeg", 0.94), "JPEG", 0, 0, pw, ph, undefined, "FAST");
+      if(i % 5 === 4) say(`표지 ${i+1} / ${jobs.length}장…`);
+    }
+    await saveFile(filename, doc.output("blob"), `표지 ${jobs.length}장을 저장했습니다.`);
+  }catch(e){ say("PDF를 만들지 못했습니다.", true); }
+}
+
+$("pdf").onclick = () => {
+  const c = cur();
+  makePDF([c], `표지_${(c.name||"반").replace(/\s+/g,"_")}.pdf`);
+};
+$("pdfAll").onclick = () => makePDF(data.classes, "표지_전체반.pdf");
+
+/* ---------- 설정 내보내기·불러오기 ---------- */
+$("exp").onclick = async () => {
+  const d = new Date();
+  const stamp = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`;
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+  await saveFile(`표지설정_${stamp}.json`, blob, "설정을 파일로 내보냈습니다.");
+};
+$("imp").onclick = () => { $("impFile").value = ""; $("impFile").click(); };
+$("impFile").addEventListener("change", ev => {
+  const f = ev.target.files && ev.target.files[0];
+  if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try{
+      const p = JSON.parse(rd.result);
+      if(!p || !Array.isArray(p.classes) || !p.classes.length) throw new Error("형식이 다릅니다");
+      data = p;
+      if(data.active >= data.classes.length) data.active = 0;
+      data.classes.forEach(c => { if(!c.on) c.on = {today:true, retest:true, answer:true, student:true}; });
+      renderAll(); doSave();
+      say(`설정을 불러왔습니다. (반 ${data.classes.length}개)`);
+    }catch(e){ say("설정 파일을 읽지 못했습니다.", true); }
+  };
+  rd.readAsText(f);
+});
+
+$("ver").textContent = `마지막 업데이트 ${APP_UPDATED}`;
+$("reload").onclick = () => location.reload();
+
+renderAll();
+</script>
+</body>
+</html>
