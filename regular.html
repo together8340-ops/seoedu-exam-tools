@@ -123,7 +123,7 @@ h2 .note{font-weight:400; color:var(--soft); font-size:12.5px; margin-left:7px}
 
 .kinds label{display:flex; align-items:center; gap:9px; padding:6px 2px; font-size:13.5px; cursor:pointer}
 .kinds input{width:auto}
-.kinds .sw{width:15px; height:15px; border-radius:3px; border:1px solid rgba(0,0,0,.22); flex:none}
+.kinds .sw{width:13px; height:13px; border-radius:50%; border:1px solid rgba(0,0,0,.22); flex:none}
 .kinds .cnt{margin-left:auto; color:var(--soft); font-size:12px}
 
 .stylepick{display:flex; flex-wrap:wrap; gap:7px}
@@ -224,7 +224,7 @@ button.ghost:hover{border-color:var(--navy); color:var(--navy)}
     <p class="wz-sub">담임을 추가하면 새 반 만들기 1번에서 고를 수 있습니다. 맡은 반이 있는 담임은 지워지지 않습니다.</p>
     <div class="tlistbox" id="tlistbox"></div>
     <div class="wz-foot">
-      <input id="tnew" placeholder="새 담임 이름 (예: 보겸T)">
+      <input id="tnew" placeholder="새 담임 이름 (예: 서윤희T)">
       <button class="go" id="tadd" type="button">담임 추가</button>
       <button class="ghost" id="tclose" type="button">닫기</button>
     </div>
@@ -570,10 +570,12 @@ function renderKinds(){
     cb.type = "checkbox"; cb.checked = !!c.on[k.key];
     cb.onchange = () => { c.on[k.key] = cb.checked; renderKinds(); render(); };
     lab.appendChild(cb);
-    const sw = document.createElement("span");
-    sw.className = "sw";
-    sw.style.background = k.key === "student" ? "#ffffff" : theme().bg;
-    lab.appendChild(sw);
+    if(theme().key !== "none"){            // 색 없음이면 표시할 색이 없다
+      const sw = document.createElement("span");
+      sw.className = "sw";
+      sw.style.background = k.key === "student" ? "#ffffff" : theme().bg;
+      lab.appendChild(sw);
+    }
     lab.appendChild(document.createTextNode(k.ui));
     const n = document.createElement("span");
     n.className = "cnt";
